@@ -9,12 +9,7 @@ import net.craftoriya.packetmenuapi.service.MenuService
 class PacketListener(menuService: MenuService) : PacketListener {
     private val menuListener = MenuListener(menuService)
 
-    override fun onPacketReceive(event: PacketReceiveEvent?) {
-
-        if (event != null) {
-            menuListener.onClickWindow(event)
-        }
-
+    override fun onPacketReceive(event: PacketReceiveEvent) {
+        menuListener.onClickWindow(event)
     }
-
 }

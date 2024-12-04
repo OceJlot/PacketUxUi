@@ -38,7 +38,7 @@ class MenuService {
         clearAccumulatedDrag(player)
     }
 
-    fun onClickInventory(click: InventoryClickDTO): WrapperPlayClientClickWindow {
+    fun onClickInventory(click: InventoryClick): WrapperPlayClientClickWindow {
         val menu = viewers[click.player] ?: error("Menu under player key not found.")
         val clickData = getClickType(click.packet)
 
@@ -51,18 +51,18 @@ class MenuService {
         return createAdjustedClickPacket(click, menu)
     }
 
-    fun onClickMenu(click: WindowClickDTO): WindowClickResponseDTO {
+    fun onClickMenu(click: WindowClick): WindowClickResponse {
 
         if (click.clickData.clickType == ClickType.DRAG_END) {
             clearAccumulatedDrag(click.player)
         }
         val carriedItem = carriedItem[click.player] ?: ItemStack.EMPTY
         val menu = viewers[click.player] ?: error("Menu under player key not found.")
-        val windowClickResponseDTO = WindowClickResponseDTO(
+        val windowClickResponse = WindowClickResponse(
                 WrapperPlayServerWindowItems(126, 0, menu.contentPacket.items, carriedItem),
                 null
         )
-        val button = menu.buttons[click.slot] ?: return windowClickResponseDTO
+        val button = menu.buttons[click.slot] ?: return windowClickResponse
 
         val now = System.currentTimeMillis()
         val cooldown = button.cooldown.combine(menu.cooldown)
@@ -75,7 +75,7 @@ class MenuService {
             button.cooldown.resetTime()
             button.execute
         }
-        return windowClickResponseDTO.copy(execute = execute)
+        return windowClickResponse.copy(execute = execute)
     }
 
     fun updateItem(player: Player, item: ItemStack, slot: Int) {
@@ -144,7 +144,7 @@ class MenuService {
 
     fun shouldIgnore(id: Int, player: Player): Boolean =  id != 126 || !viewers.containsKey(player)
 
-    fun isMenuClick(click: IsMenuClickDTO): Boolean {
+    fun isMenuClick(click: MenuClickData): Boolean {
         val menu = viewers[click.player] ?: error("Menu under player key not found.")
         return when (click.clickType.clickType) {
             ClickType.SHIFT_CLICK -> true
@@ -243,7 +243,7 @@ class MenuService {
         }
     }
 
-    private fun createAdjustedClickPacket(click: InventoryClickDTO, menu: Menu): WrapperPlayClientClickWindow {
+    private fun createAdjustedClickPacket(click: InventoryClick, menu: Menu): WrapperPlayClientClickWindow {
         val slotOffset = if (click.packet.slot != -999) click.packet.slot - menu.type.size + 9 else -999
         val adjustedSlots = click.packet.slots.orElse(emptyMap()).mapKeys { (slot, _) ->
             slot - menu.type.size + 9

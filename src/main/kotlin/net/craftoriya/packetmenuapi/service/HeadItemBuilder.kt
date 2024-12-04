@@ -7,7 +7,7 @@ import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemPro
 import com.github.retrooper.packetevents.protocol.item.ItemStack
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
 
-class HeadItemBuilder(): ItemBuilder() {
+class HeadItemBuilder: ItemBuilder() {
     var base64: String = ""
 
     fun headTextureFromName(name: String): HeadItemBuilder {

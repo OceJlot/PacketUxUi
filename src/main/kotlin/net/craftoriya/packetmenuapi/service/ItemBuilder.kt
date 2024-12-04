@@ -11,9 +11,7 @@ import net.kyori.adventure.text.Component
 import com.github.retrooper.packetevents.protocol.item.ItemStack
 import net.kyori.adventure.text.format.TextDecoration
 
-open class ItemBuilder(
-
-) {
+open class ItemBuilder {
     var itemType: ItemType = ItemTypes.AIR
     var name: Component? = null
     var lore: MutableList<Component> = mutableListOf()
@@ -70,16 +68,6 @@ open class ItemBuilder(
         this.cmd = cmd
         return this
     }
-
-//    fun headTextureBase64(base64: String): ItemBuilder {
-//
-//    }
-//    fun headTextureName(name: String): ItemBuilder {
-//
-//    }
-//    fun headTexture(url: URL): ItemBuilder {
-//
-//    }
 
     open fun build(): ItemStack {
         val item = ItemStack.builder()

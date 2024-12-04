@@ -10,6 +10,4 @@ interface IButtonBuilder {
     fun executeCommand(command: Array<String>): IButtonBuilder
     fun makePlayerExecuteCommand(command: Array<String>): IButtonBuilder
     fun cooldown(cooldown: CooldownComponent): IButtonBuilder
-
-    fun build(): Button
 }

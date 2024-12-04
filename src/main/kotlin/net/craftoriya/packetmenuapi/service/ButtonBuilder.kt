@@ -37,13 +37,7 @@ class ButtonBuilder : IButtonBuilder {
         return this
     }
 
-
-    override fun build(): Button {
-        return Button(
-            item,
-            click,
-            cooldown
-
-        )
+    fun build(): Button {
+        return Button(item, click, cooldown)
     }
 }

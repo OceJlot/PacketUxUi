@@ -1,6 +1,6 @@
 package net.craftoriya.packetmenuapi.types
 
-enum class InventoryType(private val slots: Int) {
+enum class InventoryType(slots: Int) {
     GENERIC9X1(9),
     GENERIC9X2(18),
     GENERIC9X3(27),
@@ -29,8 +29,8 @@ enum class InventoryType(private val slots: Int) {
     CUSTOM9x7(63),
     CUSTOM9x8(72),
     CUSTOM9x9(81),
-    CUSTOM9x10(90);
-
+    CUSTOM9x10(90)
+    ;
 
     val size = slots
     val lastIndex = slots - 1
