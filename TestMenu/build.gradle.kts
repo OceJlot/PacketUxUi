@@ -9,22 +9,24 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/") {
-        name = "papermc-repo"
-    }
-    maven("https://oss.sonatype.org/content/groups/public/") {
-        name = "sonatype"
-    }
+    maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.codemc.io/repository/maven-releases/")
+
+
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    compileOnly(project(":")) // TestMenu only uses PacketUxUi for compile-time
+    implementation(project(":API"))
+    implementation("com.github.retrooper:packetevents-spigot:2.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1-Beta")
+    implementation("org.incendo:cloud-paper:2.0.0-beta.10")
+
 }
 
 tasks.build {
-    dependsOn("shadowJar") // Ensure `shadowJar` is part of the build task
+    dependsOn("shadowJar")
 }
 
 tasks.processResources {

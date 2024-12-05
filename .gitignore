@@ -1,7 +1,11 @@
-/build/
-/.kotlin/
-/.gradle/
-/.idea/
+/API/build/
+/API/.kotlin/
+/API/.gradle/
+/API/.idea/
+/API/gradle/
 /TestMenu/.gradle/
+/TestMenu/.kotlin/
 /TestMenu/build/
 /TestMenu/gradle/
+/TestMenu/run/
+/.idea
