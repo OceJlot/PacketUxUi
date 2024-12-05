@@ -2,3 +2,6 @@
 /.kotlin/
 /.gradle/
 /.idea/
+/TestMenu/.gradle/
+/TestMenu/build/
+/TestMenu/gradle/

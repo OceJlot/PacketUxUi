@@ -10,6 +10,7 @@ class PacketListener(menuService: MenuService) : PacketListener {
     private val menuListener = MenuListener(menuService)
 
     override fun onPacketReceive(event: PacketReceiveEvent) {
+        println("WORKING!")
         menuListener.onClickWindow(event)
     }
 }

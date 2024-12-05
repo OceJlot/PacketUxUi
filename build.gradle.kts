@@ -1,7 +1,6 @@
 plugins {
-    id("java")
+    kotlin("jvm") version "2.1.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    kotlin("jvm") version "2.0.0-Beta2"
 }
 
 group = "net.craftoriya"
@@ -11,28 +10,20 @@ repositories {
     mavenCentral()
     mavenLocal()
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven  ("https://repo.codemc.io/repository/maven-releases/")
+    maven("https://repo.codemc.io/repository/maven-releases/")
 }
-
-//tasks {
-//    shadowJar {
-//        exclude("kotlin/**")
-//        mergeServiceFiles()
-//    }
-//}
 
 dependencies {
-    compileOnly ("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
-    compileOnly ("com.github.retrooper:packetevents-spigot:2.6.0")
-    implementation(kotlin("stdlib-jdk8"))
+    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT") // Paper API dependency
+    compileOnly("com.github.retrooper:packetevents-spigot:2.6.0") // PacketEvents dependency
+    implementation(kotlin("stdlib-jdk8")) // Kotlin standard library
 }
 
-tasks.named<ProcessResources>("processResources") {
-    val props = mapOf("version" to version)
-    inputs.properties(props)
-    filteringCharset = "UTF-8"
-    filesMatching("plugin.yml") {
-        expand(props)
+tasks {
+    shadowJar {
+        archiveClassifier.set("") // Prevent "-all" suffix in shadow JAR
+        exclude("kotlin/**") // Exclude Kotlin runtime if already shaded elsewhere
+        mergeServiceFiles() // Merge `META-INF` service files if needed
     }
 }
 
@@ -40,13 +31,6 @@ tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 
-tasks {
-    runServer {
-        minecraftVersion("1.21.1")
-    }
-}
-
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(21) // Use JDK 21
 }
-

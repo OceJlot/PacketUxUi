@@ -1,0 +1,4 @@
+name: TestMenu
+version: '1.0-SNAPSHOT'
+main: net.craftoriya.TestMenu
+api-version: '1.21'
