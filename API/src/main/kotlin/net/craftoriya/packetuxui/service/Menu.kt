@@ -8,7 +8,7 @@ import net.kyori.adventure.text.Component
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
-class Menu(
+open class Menu(
     val name: Component,
     val type: net.craftoriya.packetuxui.types.InventoryType,
     buttons: Map<Int, Button>,

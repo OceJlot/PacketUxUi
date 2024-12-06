@@ -42,6 +42,8 @@ class Dynamic4x9(
         }
     }
 
+
+
     val menu = Menu(
         name = "<gradient:#ff1493:#1e90ff><bold>Styled Background".toComponent(),
         type = InventoryType.GENERIC9X3,
@@ -65,3 +67,4 @@ class Dynamic4x9(
         return Random.nextFloat() * 100 < percent
     }
 }
+

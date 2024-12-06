@@ -3,12 +3,9 @@ package net.craftoriya.packetuxui.controller.menu
 import com.github.retrooper.packetevents.event.PacketReceiveEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow
-import net.craftoriya.packetuxui.types.ExecuteComponent
-import net.craftoriya.packetuxui.common.PacketUtils.Companion.receivePacket
 import net.craftoriya.packetuxui.dto.MenuClickData
-import net.craftoriya.packetuxui.dto.WindowClick
 import net.craftoriya.packetuxui.service.MenuService
-import org.bukkit.Bukkit
+import net.craftoriya.packetuxui.types.ClickType
 import org.bukkit.entity.Player
 
 class MenuListener(
@@ -29,28 +26,18 @@ class MenuListener(
         event.isCancelled = true
 
         val clickData = menuService.getClickType(packet)
-        if (clickData.clickType == net.craftoriya.packetuxui.types.ClickType.DRAG_START || clickData.clickType == net.craftoriya.packetuxui.types.ClickType.DRAG_ADD) {
-            menuService.accumulateDrag(player, packet, clickData)
+        if (clickData.second == ClickType.DRAG_START || clickData.second == ClickType.DRAG_ADD) {
+            menuService.accumulateDrag(player, packet, clickData.second)
             return
         }
 
         val menuClickData = menuService.isMenuClick(MenuClickData(packet, clickData, player))
         if (menuClickData) {
-            val response = menuService.onClickMenu(WindowClick(player, clickData, packet.slot))
-            Bukkit.getScheduler().run { player.updateInventory() }
-            if (response.menuContentPacket != null) {
-                user.sendPacket(response.menuContentPacket)
-                response.execute?.let { it(ExecuteComponent(player, clickData.buttonType, packet.slot, menuService.getCarriedItem(player))) }
-            }
+            menuService.handleClickMenu(player, clickData, packet.slot)
+            player.updateInventory()
+
         } else { // isInventoryClick
-            val response = menuService.onClickInventory(
-                net.craftoriya.packetuxui.dto.InventoryClick(
-                    player,
-                    packet,
-                    clickData
-                )
-            )
-            player.receivePacket(response)
+            menuService.handleClickInventory(player, packet)
         }
     }
 }

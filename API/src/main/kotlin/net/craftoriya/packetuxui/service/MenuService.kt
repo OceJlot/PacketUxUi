@@ -7,9 +7,11 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSe
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems
 import net.craftoriya.packetuxui.common.PacketUtils.Companion.receivePacket
 import net.craftoriya.packetuxui.common.PacketUtils.Companion.sendPacket
-import net.craftoriya.packetuxui.dto.*
+import net.craftoriya.packetuxui.dto.AccumulatedDrag
+import net.craftoriya.packetuxui.dto.MenuClickData
 import net.craftoriya.packetuxui.types.ButtonType
-import net.craftoriya.packetuxui.types.ClickData
+import net.craftoriya.packetuxui.types.ClickType
+import net.craftoriya.packetuxui.types.ExecuteComponent
 import org.bukkit.entity.Player
 import java.util.*
 
@@ -37,44 +39,55 @@ class MenuService {
         clearAccumulatedDrag(player)
     }
 
-    fun onClickInventory(click: net.craftoriya.packetuxui.dto.InventoryClick): WrapperPlayClientClickWindow {
-        val menu = viewers[click.player] ?: error("Menu under player key not found.")
-        val clickData = getClickType(click.packet)
+    fun handleClickInventory(player: Player, packet: WrapperPlayClientClickWindow) {
+        val menu = viewers[player] ?: error("Menu under player key not found.")
+        val clickData = getClickType(packet)
 
-        updateCarriedItem(click.player, click.packet.carriedItemStack, clickData.clickType)
+        updateCarriedItem(player, packet.carriedItemStack, clickData.second)
 
-        if (clickData.clickType == net.craftoriya.packetuxui.types.ClickType.DRAG_END) {
-            handleDragEnd(click.player, menu)
+        if (clickData.second == ClickType.DRAG_END) {
+            handleDragEnd(player, menu)
         }
-
-        return createAdjustedClickPacket(click, menu)
+        player.receivePacket(createAdjustedClickPacket(packet, menu))
     }
 
-    fun onClickMenu(click: WindowClick): WindowClickResponse {
+    fun handleClickMenu(player: Player, clickData: Pair<ButtonType, ClickType>, slot: Int) {
 
-        if (click.clickData.clickType == net.craftoriya.packetuxui.types.ClickType.DRAG_END) {
-            clearAccumulatedDrag(click.player)
+        if (clickData.second == ClickType.DRAG_END) {
+            clearAccumulatedDrag(player)
         }
-        val carriedItem = carriedItem[click.player] ?: ItemStack.EMPTY
-        val menu = viewers[click.player] ?: error("Menu under player key not found.")
-        val windowClickResponse = WindowClickResponse(
-                WrapperPlayServerWindowItems(126, 0, menu.contentPacket.items, carriedItem),
-                null
-        )
-        val button = menu.buttons[click.slot] ?: return windowClickResponse
+        val carriedItem = carriedItem[player] ?: ItemStack.EMPTY
+        val menu = viewers[player] ?: error("Menu under player key not found.")
+
+        val menuContentPacket = WrapperPlayServerWindowItems(126, 0, menu.contentPacket.items, carriedItem)
+        val button = menu.buttons[slot]
+        if (button == null) {
+            player.sendPacket(menuContentPacket)
+            return
+        }
 
         val now = System.currentTimeMillis()
         val cooldown = button.cooldown.combine(menu.cooldown)
-        val execute = if(!cooldown.isFreezeExpired(now)) {
+        val execute = if (!cooldown.isFreezeExpired(now)) {
             null
         } else if (!cooldown.isTimeExpired(now)) {
             button.cooldown.resetFreeze()
             button.cooldown.execute
-        }else {
+        } else {
             button.cooldown.resetTime()
             button.execute
         }
-        return windowClickResponse.copy(execute = execute)
+        player.sendPacket(menuContentPacket)
+        execute?.let {
+            it(
+                ExecuteComponent(
+                    player,
+                    clickData.first,
+                    slot,
+                    getCarriedItem(player)
+                )
+            )
+        }
     }
 
     fun updateItem(player: Player, item: ItemStack, slot: Int) {
@@ -100,7 +113,7 @@ class MenuService {
             }
             menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
         }
-        for((slot, item) in newItems) {
+        for ((slot, item) in newItems) {
             player.sendPacket(WrapperPlayServerSetSlot(126, 0, slot, item))
         }
     }
@@ -132,93 +145,103 @@ class MenuService {
             }
             menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
         }
-        for((slot, button) in newButtons) {
+        for ((slot, button) in newButtons) {
             player.sendPacket(WrapperPlayServerSetSlot(126, 0, slot, button.item))
         }
     }
 
     fun getMenu(player: Player): Menu? = viewers[player]
 
-    fun getCarriedItem(player: Player): ItemStack? = carriedItem[player]
+    private fun getCarriedItem(player: Player): ItemStack? = carriedItem[player]
 
-    fun shouldIgnore(id: Int, player: Player): Boolean =  id != 126 || !viewers.containsKey(player)
+    fun shouldIgnore(id: Int, player: Player): Boolean = id != 126 || !viewers.containsKey(player)
 
     fun isMenuClick(click: MenuClickData): Boolean {
         val menu = viewers[click.player] ?: error("Menu under player key not found.")
-        return when (click.clickType.clickType) {
-            net.craftoriya.packetuxui.types.ClickType.SHIFT_CLICK -> true
-            in listOf(net.craftoriya.packetuxui.types.ClickType.PICKUP, net.craftoriya.packetuxui.types.ClickType.PLACE) -> click.wrapper.slot in 0..menu.type.lastIndex
-            net.craftoriya.packetuxui.types.ClickType.DRAG_END -> click.wrapper.slots.orElse(emptyMap()).keys.any { it in 0..menu.type.lastIndex }
-            net.craftoriya.packetuxui.types.ClickType.PICKUP_ALL -> click.wrapper.slots.orElse(emptyMap()).keys.any { it in 0..menu.type.lastIndex }
+        return when (click.clickType.second) {
+            ClickType.SHIFT_CLICK -> true
+            in listOf(ClickType.PICKUP, ClickType.PLACE) -> click.wrapper.slot in 0..menu.type.lastIndex
+            ClickType.DRAG_END -> click.wrapper.slots.orElse(emptyMap()).keys.any { it in 0..menu.type.lastIndex }
+            ClickType.PICKUP_ALL -> click.wrapper.slots.orElse(emptyMap()).keys.any { it in 0..menu.type.lastIndex }
             else -> false
         }
     }
 
-    fun getClickType(packet: WrapperPlayClientClickWindow): ClickData {
-        when (packet.windowClickType){
-            WindowClickType.PICKUP ->{
-                return if (packet.carriedItemStack != ItemStack.EMPTY) {
-                    if (packet.button == 0) ClickData(ButtonType.LEFT, net.craftoriya.packetuxui.types.ClickType.PICKUP)
-                    else ClickData(ButtonType.RIGHT, net.craftoriya.packetuxui.types.ClickType.PICKUP)
+    fun getClickType(packet: WrapperPlayClientClickWindow): Pair<ButtonType, ClickType> {
+        return when (packet.windowClickType) {
+            WindowClickType.PICKUP -> {
+                if (packet.carriedItemStack != ItemStack.EMPTY) {
+                    if (packet.button == 0) Pair(ButtonType.LEFT, ClickType.PICKUP)
+                    else Pair(ButtonType.RIGHT, ClickType.PICKUP)
                 } else {
-                    ClickData(ButtonType.RIGHT, net.craftoriya.packetuxui.types.ClickType.PLACE)
+                    Pair(ButtonType.RIGHT, ClickType.PLACE)
                 }
             }
+
             WindowClickType.QUICK_MOVE -> {
-                return if(packet.button == 0) {
-                    ClickData(ButtonType.SHIFT_LEFT, net.craftoriya.packetuxui.types.ClickType.SHIFT_CLICK)
-                }else{
-                    ClickData(ButtonType.SHIFT_RIGHT, net.craftoriya.packetuxui.types.ClickType.SHIFT_CLICK)
+                if (packet.button == 0) {
+                    Pair(ButtonType.SHIFT_LEFT, ClickType.SHIFT_CLICK)
+                } else {
+                    Pair(ButtonType.SHIFT_RIGHT, ClickType.SHIFT_CLICK)
                 }
             }
+
             WindowClickType.SWAP -> {
-                return if(packet.button == 40) {
-                    ClickData(ButtonType.F, net.craftoriya.packetuxui.types.ClickType.PICKUP)
-                }else {
-                    return ClickData(ButtonType.LEFT, net.craftoriya.packetuxui.types.ClickType.PLACE)
+                if (packet.button == 40) {
+                    Pair(ButtonType.F, ClickType.PICKUP)
+                } else {
+                    Pair(ButtonType.LEFT, ClickType.PLACE)
                 }
             }
+
             WindowClickType.CLONE -> {
-                return ClickData(ButtonType.MIDDLE, net.craftoriya.packetuxui.types.ClickType.PICKUP)
+                Pair(ButtonType.MIDDLE, ClickType.PICKUP)
             }
+
             WindowClickType.THROW -> {
-                return if(packet.button == 0) {
-                    ClickData(ButtonType.DROP, net.craftoriya.packetuxui.types.ClickType.PICKUP)
-                }else{
-                    ClickData(ButtonType.CTRL_DROP, net.craftoriya.packetuxui.types.ClickType.PICKUP)
+                if (packet.button == 0) {
+                    Pair(ButtonType.DROP, ClickType.PICKUP)
+                } else {
+                    Pair(ButtonType.CTRL_DROP, ClickType.PICKUP)
                 }
             }
+
             WindowClickType.QUICK_CRAFT -> {
-                return when (packet.button) {
-                    0 -> ClickData(ButtonType.LEFT, net.craftoriya.packetuxui.types.ClickType.DRAG_START)
-                    4 -> ClickData(ButtonType.RIGHT, net.craftoriya.packetuxui.types.ClickType.DRAG_START)
-                    8 -> ClickData(ButtonType.MIDDLE, net.craftoriya.packetuxui.types.ClickType.DRAG_START)
+                when (packet.button) {
+                    0 -> Pair(ButtonType.LEFT, ClickType.DRAG_START)
+                    4 -> Pair(ButtonType.RIGHT, ClickType.DRAG_START)
+                    8 -> Pair(ButtonType.MIDDLE, ClickType.DRAG_START)
 
-                    1 -> ClickData(ButtonType.LEFT, net.craftoriya.packetuxui.types.ClickType.DRAG_ADD)
-                    5 -> ClickData(ButtonType.RIGHT, net.craftoriya.packetuxui.types.ClickType.DRAG_ADD)
-                    9 -> ClickData(ButtonType.MIDDLE, net.craftoriya.packetuxui.types.ClickType.DRAG_ADD)
+                    1 -> Pair(ButtonType.LEFT, ClickType.DRAG_ADD)
+                    5 -> Pair(ButtonType.RIGHT, ClickType.DRAG_ADD)
+                    9 -> Pair(ButtonType.MIDDLE, ClickType.DRAG_ADD)
 
-                    2 -> ClickData(ButtonType.LEFT, net.craftoriya.packetuxui.types.ClickType.DRAG_END)
-                    6 -> ClickData(ButtonType.RIGHT, net.craftoriya.packetuxui.types.ClickType.DRAG_END)
-                    10 -> ClickData(ButtonType.MIDDLE, net.craftoriya.packetuxui.types.ClickType.DRAG_END)
+                    2 -> Pair(ButtonType.LEFT, ClickType.DRAG_END)
+                    6 -> Pair(ButtonType.RIGHT, ClickType.DRAG_END)
+                    10 -> Pair(ButtonType.MIDDLE, ClickType.DRAG_END)
 
-                    else -> ClickData(ButtonType.LEFT, net.craftoriya.packetuxui.types.ClickType.UNDEFINED)
+                    else -> Pair(ButtonType.LEFT, ClickType.UNDEFINED)
                 }
             }
+
             WindowClickType.PICKUP_ALL -> {
-                return ClickData(ButtonType.DOUBLE_CLICK, net.craftoriya.packetuxui.types.ClickType.PICKUP_ALL)
+                Pair(ButtonType.DOUBLE_CLICK, ClickType.PICKUP_ALL)
             }
-            else -> { return ClickData(ButtonType.LEFT, net.craftoriya.packetuxui.types.ClickType.UNDEFINED) }
+
+            else -> {
+                Pair(ButtonType.LEFT, ClickType.UNDEFINED)
+            }
         }
     }
 
-    fun accumulateDrag(player: Player, packet: WrapperPlayClientClickWindow, type: ClickData) {
-        accumulatedDrag.getOrPut(player) { mutableListOf() }.add(AccumulatedDrag(packet, type.clickType))
+
+    fun accumulateDrag(player: Player, packet: WrapperPlayClientClickWindow, type: ClickType) {
+        accumulatedDrag.getOrPut(player) { mutableListOf() }.add(AccumulatedDrag(packet, type))
     }
 
     private fun handleDragEnd(player: Player, menu: Menu) {
         accumulatedDrag[player]?.forEach { drag ->
-            val packet = if (drag.type == net.craftoriya.packetuxui.types.ClickType.DRAG_START) {
+            val packet = if (drag.type == ClickType.DRAG_START) {
                 createDragPacket(drag.packet, 0)
             } else {
                 createDragPacket(drag.packet, -menu.type.size + 9)
@@ -228,7 +251,10 @@ class MenuService {
         clearAccumulatedDrag(player)
     }
 
-    private fun createDragPacket(originalPacket: WrapperPlayClientClickWindow, slotOffset: Int): WrapperPlayClientClickWindow {
+    private fun createDragPacket(
+        originalPacket: WrapperPlayClientClickWindow,
+        slotOffset: Int
+    ): WrapperPlayClientClickWindow {
         return WrapperPlayClientClickWindow(
             0, originalPacket.stateId, originalPacket.slot + slotOffset, originalPacket.button,
             originalPacket.actionNumber, originalPacket.windowClickType,
@@ -237,30 +263,31 @@ class MenuService {
     }
 
     fun clearAccumulatedDrag(player: Player) {
-        synchronized(accumulatedDrag){
+        synchronized(accumulatedDrag) {
             accumulatedDrag[player]?.clear()
         }
     }
 
-    private fun createAdjustedClickPacket(click: net.craftoriya.packetuxui.dto.InventoryClick, menu: Menu): WrapperPlayClientClickWindow {
-        val slotOffset = if (click.packet.slot != -999) click.packet.slot - menu.type.size + 9 else -999
-        val adjustedSlots = click.packet.slots.orElse(emptyMap()).mapKeys { (slot, _) ->
+    private fun createAdjustedClickPacket(packet: WrapperPlayClientClickWindow, menu: Menu): WrapperPlayClientClickWindow {
+        val slotOffset = if (packet.slot != -999) packet.slot - menu.type.size + 9 else -999
+        val adjustedSlots = packet.slots.orElse(emptyMap()).mapKeys { (slot, _) ->
             slot - menu.type.size + 9
         }
 
         return WrapperPlayClientClickWindow(
-            0, click.packet.stateId, slotOffset, click.packet.button,
-            click.packet.actionNumber, click.packet.windowClickType,
-            Optional.of(adjustedSlots), click.packet.carriedItemStack
+            0, packet.stateId, slotOffset, packet.button,
+            packet.actionNumber, packet.windowClickType,
+            Optional.of(adjustedSlots), packet.carriedItemStack
         )
     }
 
-    private fun updateCarriedItem(player: Player, carriedItemStack: ItemStack, clickType: net.craftoriya.packetuxui.types.ClickType) {
-        synchronized(carriedItem){
+    private fun updateCarriedItem(player: Player, carriedItemStack: ItemStack, clickType: ClickType) {
+        synchronized(carriedItem) {
             carriedItem[player] = when (clickType) {
-                net.craftoriya.packetuxui.types.ClickType.PICKUP, net.craftoriya.packetuxui.types.ClickType.PICKUP_ALL, net.craftoriya.packetuxui.types.ClickType.DRAG_START, net.craftoriya.packetuxui.types.ClickType.DRAG_END -> {
+                ClickType.PICKUP, ClickType.PICKUP_ALL, ClickType.DRAG_START, ClickType.DRAG_END -> {
                     carriedItemStack
                 }
+
                 else -> ItemStack.EMPTY
             }
         }
