@@ -187,10 +187,10 @@ class MenuService {
             }
 
             WindowClickType.SWAP -> {
-                if (packet.button == 40) {
-                    Pair(ButtonType.F, ClickType.PICKUP)
-                } else {
-                    Pair(ButtonType.LEFT, ClickType.PLACE)
+                when (packet.button) {
+                    in 0..8 -> Pair(ButtonType.entries[9+packet.button], ClickType.PICKUP)
+                    40 -> Pair(ButtonType.F, ClickType.PICKUP)
+                    else -> Pair(ButtonType.LEFT, ClickType.PLACE)
                 }
             }
 
