@@ -41,8 +41,7 @@ class MenuListener(
 
         } else { // isInventoryClick
             menuService.handleClickInventory(player, packet)
-//            player.sendPacket(WrapperPlayServerSetCursorItem(ItemStack.builder().type(ItemTypes.STONE).build()))
-            player.sendPacket(WrapperPlayServerSetSlot(-1, 0, -1, ItemStack.builder().type(ItemTypes.STONE).build()))
+
         }
     }
 }

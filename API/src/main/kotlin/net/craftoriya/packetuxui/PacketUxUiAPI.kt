@@ -22,9 +22,10 @@ object PacketUxUiAPI {
         return service
     }
 
-    fun init(plugin: JavaPlugin) {
+    fun init() {
         if (isInitialized) return
         val packetEvents = PacketEvents.getAPI()
+        val plugin: JavaPlugin = packetEvents.plugin as JavaPlugin
 
         if (!packetEvents.isLoaded) {
             packetEvents.load()

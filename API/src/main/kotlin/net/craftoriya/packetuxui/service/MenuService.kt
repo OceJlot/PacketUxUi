@@ -23,20 +23,14 @@ class MenuService {
 
 
     fun openMenu(player: Player, menu: Menu) {
-        synchronized(viewers) {
-            viewers[player] = menu.copy()
-        }
+        viewers[player] = menu.copy()
         player.sendPacket(menu.menuPacket)
         player.sendPacket(menu.contentPacket)
     }
 
     fun onCloseMenu(player: Player) {
-        synchronized(viewers) {
-            viewers.remove(player)
-        }
-        synchronized(carriedItem) {
-            carriedItem.remove(player)
-        }
+        viewers.remove(player)
+        carriedItem.remove(player)
         clearAccumulatedDrag(player)
     }
 
@@ -95,11 +89,10 @@ class MenuService {
         val menu = getMenu(player) ?: return
         if (slot > menu.type.lastIndex) throw IllegalArgumentException("Slot out of range.")
 
-        synchronized(menu) {
-            val items = menu.contentPacket.items.toMutableList()
-            items[slot] = item
-            menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
-        }
+        val items = menu.contentPacket.items.toMutableList()
+        items[slot] = item
+        menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
+
         player.sendPacket(WrapperPlayServerSetSlot(126, 0, slot, item))
     }
 
@@ -107,13 +100,12 @@ class MenuService {
         val menu = getMenu(player) ?: return
         if (newItems.keys.any { it > menu.type.lastIndex }) throw IllegalArgumentException("Slot out of range.")
 
-        synchronized(menu) {
-            val items = menu.contentPacket.items.toMutableList()
-            newItems.forEach { (slot, item) ->
-                items[slot] = item
-            }
-            menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
+        val items = menu.contentPacket.items.toMutableList()
+        newItems.forEach { (slot, item) ->
+            items[slot] = item
         }
+        menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
+
         for ((slot, item) in newItems) {
             player.sendPacket(WrapperPlayServerSetSlot(126, 0, slot, item))
         }
@@ -123,12 +115,11 @@ class MenuService {
         val menu = getMenu(player) ?: return
         if (slot > menu.type.lastIndex) throw IllegalArgumentException("Slot out of range.")
 
-        synchronized(menu) {
-            menu.buttons[slot] = newButton
-            val items = menu.contentPacket.items.toMutableList()
-            items[slot] = newButton.item
-            menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
-        }
+        menu.buttons[slot] = newButton
+        val items = menu.contentPacket.items.toMutableList()
+        items[slot] = newButton.item
+        menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
+
         player.sendPacket(WrapperPlayServerSetSlot(126, 0, slot, newButton.item))
     }
 
@@ -138,14 +129,13 @@ class MenuService {
             throw IllegalArgumentException("Slot out of range.")
         }
 
-        synchronized(menu) {
-            menu.buttons.clear()
-            menu.buttons.putAll(newButtons)
-            val items = MutableList(menu.type.lastIndex) { index ->
-                newButtons[index]?.item ?: ItemStack.EMPTY
-            }
-            menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
+        menu.buttons.clear()
+        menu.buttons.putAll(newButtons)
+        val items = MutableList(menu.type.lastIndex) { index ->
+            newButtons[index]?.item ?: ItemStack.EMPTY
         }
+        menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
+
         for ((slot, button) in newButtons) {
             player.sendPacket(WrapperPlayServerSetSlot(126, 0, slot, button.item))
         }
@@ -192,7 +182,7 @@ class MenuService {
 
             WindowClickType.SWAP -> {
                 when (packet.button) {
-                    in 0..8 -> Pair(ButtonType.entries[9+packet.button], ClickType.PICKUP)
+                    in 0..8 -> Pair(ButtonType.entries[9 + packet.button], ClickType.PICKUP)
                     40 -> Pair(ButtonType.F, ClickType.PICKUP)
                     else -> Pair(ButtonType.LEFT, ClickType.PLACE)
                 }
@@ -267,12 +257,13 @@ class MenuService {
     }
 
     fun clearAccumulatedDrag(player: Player) {
-        synchronized(accumulatedDrag) {
-            accumulatedDrag[player]?.clear()
-        }
+        accumulatedDrag[player]?.clear()
     }
 
-    private fun createAdjustedClickPacket(packet: WrapperPlayClientClickWindow, menu: Menu): WrapperPlayClientClickWindow {
+    private fun createAdjustedClickPacket(
+        packet: WrapperPlayClientClickWindow,
+        menu: Menu
+    ): WrapperPlayClientClickWindow {
         val slotOffset = if (packet.slot != -999) packet.slot - menu.type.size + 9 else -999
         val adjustedSlots = packet.slots.orElse(emptyMap()).mapKeys { (slot, _) ->
             slot - menu.type.size + 9
