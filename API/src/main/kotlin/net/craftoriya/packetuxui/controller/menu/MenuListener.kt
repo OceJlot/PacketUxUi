@@ -1,8 +1,12 @@
 package net.craftoriya.packetuxui.controller.menu
 
 import com.github.retrooper.packetevents.event.PacketReceiveEvent
+import com.github.retrooper.packetevents.protocol.item.ItemStack
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
+import net.craftoriya.packetuxui.common.PacketUtils.Companion.sendPacket
 import net.craftoriya.packetuxui.dto.MenuClickData
 import net.craftoriya.packetuxui.service.MenuService
 import net.craftoriya.packetuxui.types.ClickType
@@ -13,7 +17,6 @@ class MenuListener(
 ) {
     fun onClickWindow(event: PacketReceiveEvent) {
         val packetType = event.packetType
-        val user = event.user
         val player = event.getPlayer<Player>()
 
         if (packetType == PacketType.Play.Client.CLOSE_WINDOW) {
@@ -38,6 +41,8 @@ class MenuListener(
 
         } else { // isInventoryClick
             menuService.handleClickInventory(player, packet)
+//            player.sendPacket(WrapperPlayServerSetCursorItem(ItemStack.builder().type(ItemTypes.STONE).build()))
+            player.sendPacket(WrapperPlayServerSetSlot(-1, 0, -1, ItemStack.builder().type(ItemTypes.STONE).build()))
         }
     }
 }

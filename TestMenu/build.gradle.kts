@@ -40,10 +40,10 @@ tasks.processResources {
 
 tasks {
     runServer {
-        minecraftVersion("1.21.1") // Set Minecraft version for testing
+        minecraftVersion("1.21.1")
     }
 }
 
 kotlin {
-    jvmToolchain(21) // Use JDK 21
+    jvmToolchain(21)
 }

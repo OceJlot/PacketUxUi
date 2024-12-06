@@ -2,7 +2,11 @@ package net.craftoriya.packetuxui
 
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.event.PacketListenerPriority
+import net.craftoriya.packetuxui.controller.BukkitListener
+import net.craftoriya.packetuxui.controller.PacketListener
 import net.craftoriya.packetuxui.service.MenuService
+import org.bukkit.Bukkit
+import org.bukkit.plugin.java.JavaPlugin
 
 
 object PacketUxUiAPI {
@@ -18,7 +22,7 @@ object PacketUxUiAPI {
         return service
     }
 
-    fun init() {
+    fun init(plugin: JavaPlugin) {
         if (isInitialized) return
         val packetEvents = PacketEvents.getAPI()
 
@@ -31,8 +35,9 @@ object PacketUxUiAPI {
 
         service = MenuService()
         packetEvents.eventManager.registerListener(
-            net.craftoriya.packetuxui.controller.PacketListener(service).asAbstract(PacketListenerPriority.HIGHEST)
+            PacketListener(service).asAbstract(PacketListenerPriority.HIGHEST)
         )
+        Bukkit.getPluginManager().registerEvents(BukkitListener(service), plugin)
         isInitialized = true
     }
 

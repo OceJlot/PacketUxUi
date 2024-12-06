@@ -14,11 +14,12 @@ import net.craftoriya.packetuxui.types.ClickType
 import net.craftoriya.packetuxui.types.ExecuteComponent
 import org.bukkit.entity.Player
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 class MenuService {
-    private val viewers = WeakHashMap<Player, Menu>()
-    private val carriedItem = WeakHashMap<Player, ItemStack>()
-    private val accumulatedDrag = WeakHashMap<Player, MutableList<AccumulatedDrag>>()
+    private val viewers = ConcurrentHashMap<Player, Menu>()
+    private val carriedItem = ConcurrentHashMap<Player, ItemStack?>()
+    private val accumulatedDrag = ConcurrentHashMap<Player, MutableList<AccumulatedDrag>>()
 
 
     fun openMenu(player: Player, menu: Menu) {
@@ -56,7 +57,7 @@ class MenuService {
         if (clickData.second == ClickType.DRAG_END) {
             clearAccumulatedDrag(player)
         }
-        val carriedItem = carriedItem[player] ?: ItemStack.EMPTY
+        val carriedItem = carriedItem[player]
         val menu = viewers[player] ?: error("Menu under player key not found.")
 
         val menuContentPacket = WrapperPlayServerWindowItems(126, 0, menu.contentPacket.items, carriedItem)
@@ -84,7 +85,7 @@ class MenuService {
                     player,
                     clickData.first,
                     slot,
-                    getCarriedItem(player)
+                    carriedItem
                 )
             )
         }
@@ -152,7 +153,6 @@ class MenuService {
 
     fun getMenu(player: Player): Menu? = viewers[player]
 
-    private fun getCarriedItem(player: Player): ItemStack? = carriedItem[player]
 
     fun shouldIgnore(id: Int, player: Player): Boolean = id != 126 || !viewers.containsKey(player)
 
@@ -165,6 +165,10 @@ class MenuService {
             ClickType.PICKUP_ALL -> click.wrapper.slots.orElse(emptyMap()).keys.any { it in 0..menu.type.lastIndex }
             else -> false
         }
+    }
+
+    fun reRenderCarriedItem(player: Player) {
+        player.sendPacket(WrapperPlayServerSetSlot(-1, 0, -1, carriedItem[player]))
     }
 
     fun getClickType(packet: WrapperPlayClientClickWindow): Pair<ButtonType, ClickType> {
@@ -282,14 +286,9 @@ class MenuService {
     }
 
     private fun updateCarriedItem(player: Player, carriedItemStack: ItemStack, clickType: ClickType) {
-        synchronized(carriedItem) {
-            carriedItem[player] = when (clickType) {
-                ClickType.PICKUP, ClickType.PICKUP_ALL, ClickType.DRAG_START, ClickType.DRAG_END -> {
-                    carriedItemStack
-                }
-
-                else -> ItemStack.EMPTY
-            }
+        carriedItem[player] = when (clickType) {
+            ClickType.PICKUP, ClickType.PICKUP_ALL, ClickType.DRAG_START, ClickType.DRAG_END -> carriedItemStack
+            else -> null
         }
     }
 }
