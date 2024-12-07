@@ -8,7 +8,6 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWi
 import net.craftoriya.packetuxui.common.PacketUtils.Companion.receivePacket
 import net.craftoriya.packetuxui.common.PacketUtils.Companion.sendPacket
 import net.craftoriya.packetuxui.dto.AccumulatedDrag
-import net.craftoriya.packetuxui.dto.MenuClickData
 import net.craftoriya.packetuxui.types.ButtonType
 import net.craftoriya.packetuxui.types.ClickType
 import net.craftoriya.packetuxui.types.ExecuteComponent
@@ -18,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 class MenuService {
     private val viewers = ConcurrentHashMap<Player, Menu>()
-    private val carriedItem = ConcurrentHashMap<Player, ItemStack?>()
+    val carriedItem = ConcurrentHashMap<Player, ItemStack>()
     private val accumulatedDrag = ConcurrentHashMap<Player, MutableList<AccumulatedDrag>>()
 
 
@@ -146,16 +145,24 @@ class MenuService {
 
     fun shouldIgnore(id: Int, player: Player): Boolean = id != 126 || !viewers.containsKey(player)
 
-    fun isMenuClick(click: MenuClickData): Boolean {
-        val menu = viewers[click.player] ?: error("Menu under player key not found.")
-        return when (click.clickType.second) {
+    fun isMenuClick(
+        wrapper: WrapperPlayClientClickWindow,
+        clickType: Pair<ButtonType, ClickType>,
+        player: Player
+    ): Boolean {
+        val menu = viewers[player] ?: error("Menu under player key not found.")
+        val slotRange = 0..menu.type.lastIndex
+
+        return when (clickType.second) {
             ClickType.SHIFT_CLICK -> true
-            in listOf(ClickType.PICKUP, ClickType.PLACE) -> click.wrapper.slot in 0..menu.type.lastIndex
-            ClickType.DRAG_END -> click.wrapper.slots.orElse(emptyMap()).keys.any { it in 0..menu.type.lastIndex }
-            ClickType.PICKUP_ALL -> click.wrapper.slots.orElse(emptyMap()).keys.any { it in 0..menu.type.lastIndex }
+            in listOf(ClickType.PICKUP, ClickType.PLACE) -> wrapper.slot in slotRange
+            ClickType.DRAG_END, ClickType.PICKUP_ALL ->
+                wrapper.slot in slotRange || wrapper.slots.orElse(emptyMap()).keys.any { it in slotRange }
+
             else -> false
         }
     }
+
 
     fun reRenderCarriedItem(player: Player) {
         player.sendPacket(WrapperPlayServerSetSlot(-1, 0, -1, carriedItem[player]))
@@ -276,11 +283,23 @@ class MenuService {
         )
     }
 
-    private fun updateCarriedItem(player: Player, carriedItemStack: ItemStack, clickType: ClickType) {
-        carriedItem[player] = when (clickType) {
-            ClickType.PICKUP, ClickType.PICKUP_ALL, ClickType.DRAG_START, ClickType.DRAG_END -> carriedItemStack
-            else -> null
+    private fun updateCarriedItem(player: Player, carriedItemStack: ItemStack?, clickType: ClickType) {
+        if (carriedItemStack == null) {
+            carriedItem.remove(player)
+            return
         }
+        when (clickType) {
+            ClickType.PICKUP, ClickType.PICKUP_ALL, ClickType.DRAG_START, ClickType.DRAG_END -> {
+                carriedItem[player] = carriedItemStack
+            }
+
+            else -> carriedItem.remove(player)
+        }
+//        if ((carriedItem[player]?.type ?: ItemTypes.AIR) == ItemTypes.ACACIA_SIGN){
+//            println("""
+//                $clickType
+//            """.trimIndent())
+//        }
     }
 }
 

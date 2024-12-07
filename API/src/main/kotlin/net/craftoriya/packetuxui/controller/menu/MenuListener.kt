@@ -1,13 +1,8 @@
 package net.craftoriya.packetuxui.controller.menu
 
 import com.github.retrooper.packetevents.event.PacketReceiveEvent
-import com.github.retrooper.packetevents.protocol.item.ItemStack
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
-import net.craftoriya.packetuxui.common.PacketUtils.Companion.sendPacket
-import net.craftoriya.packetuxui.dto.MenuClickData
 import net.craftoriya.packetuxui.service.MenuService
 import net.craftoriya.packetuxui.types.ClickType
 import org.bukkit.entity.Player
@@ -34,12 +29,22 @@ class MenuListener(
             return
         }
 
-        val menuClickData = menuService.isMenuClick(MenuClickData(packet, clickData, player))
+        val menuClickData = menuService.isMenuClick(packet, clickData, player)
         if (menuClickData) {
             menuService.handleClickMenu(player, clickData, packet.slot)
             player.updateInventory()
 
         } else { // isInventoryClick
+
+//            println("""
+//
+//                WindowID ${packet.windowId}
+//                Button ${packet.button}
+//                Slot ${packet.slot}
+//                WindowClickType ${packet.windowClickType}
+//                StateID ${packet.stateId}
+//                ActionNumber ${packet.actionNumber}
+//            """.trimIndent())
             menuService.handleClickInventory(player, packet)
 
         }

@@ -8,7 +8,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 class BukkitListener(private val service: MenuService) : Listener {
 
     @EventHandler
-    fun onQuit(event: PlayerQuitEvent){
+    fun onQuit(event: PlayerQuitEvent) {
         service.onCloseMenu(event.player)
     }
 }

@@ -25,6 +25,7 @@ object PacketUxUiAPI {
     fun init() {
         if (isInitialized) return
         val packetEvents = PacketEvents.getAPI()
+
         val plugin: JavaPlugin = packetEvents.plugin as JavaPlugin
 
         if (!packetEvents.isLoaded) {
@@ -40,6 +41,11 @@ object PacketUxUiAPI {
         )
         Bukkit.getPluginManager().registerEvents(BukkitListener(service), plugin)
         isInitialized = true
+//        Bukkit.getScheduler().runTaskTimer(plugin, Runnable {
+//            Bukkit.getOnlinePlayers().forEach{
+//                it.sendMessage("${service.carriedItem[it]?.type?.name}")
+//            }
+//        }, 0, 20)
     }
 
     fun terminate() {
