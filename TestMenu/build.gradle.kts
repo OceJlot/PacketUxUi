@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.1.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.0.1"
+
 }
 
 group = "net.craftoriya"
@@ -11,7 +12,6 @@ repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.codemc.io/repository/maven-releases/")
-
 
 }
 
@@ -47,3 +47,5 @@ tasks {
 kotlin {
     jvmToolchain(21)
 }
+
+

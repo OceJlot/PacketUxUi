@@ -1,6 +1,8 @@
+
 plugins {
     kotlin("jvm") version "2.1.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id ("maven-publish")
 }
 
 group = "net.craftoriya"
@@ -16,7 +18,7 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
     compileOnly("com.github.retrooper:packetevents-spigot:2.6.0")
-    implementation(kotlin("stdlib-jdk8"))
+    compileOnly(kotlin("stdlib-jdk8"))
 }
 
 tasks {
@@ -34,3 +36,13 @@ tasks.withType<JavaCompile> {
 kotlin {
     jvmToolchain(21)
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+
+        }
+    }
+}
+
