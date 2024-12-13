@@ -10,7 +10,7 @@ import net.craftoriya.packetuxui.types.InventoryType
 
 class ButtonDetector {
     private val glowingItem = ItemBuilder()
-        .itemType(ItemTypes.GLOWSTONE)
+        .itemType(ItemTypes.AIR)
         .name("<yellow><bold>Glowing Stone".toComponent())
         .amount(1)
         .build()

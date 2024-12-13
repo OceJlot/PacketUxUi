@@ -24,27 +24,20 @@ class MenuListener(
         event.isCancelled = true
 
         val clickData = menuService.getClickType(packet)
-        if (clickData.second == ClickType.DRAG_START || clickData.second == ClickType.DRAG_ADD) {
-            menuService.accumulateDrag(player, packet, clickData.second)
+        if (clickData.clickType == ClickType.DRAG_START || clickData.clickType == ClickType.DRAG_ADD) {
+            menuService.accumulateDrag(player, packet, clickData.clickType)
             return
         }
 
-        val menuClickData = menuService.isMenuClick(packet, clickData, player)
+        val menuClickData = menuService.isMenuClick(packet, clickData.clickType, player)
         if (menuClickData) {
             menuService.handleClickMenu(player, clickData, packet.slot)
             player.updateInventory()
 
+
         } else { // isInventoryClick
 
-//            println("""
-//
-//                WindowID ${packet.windowId}
-//                Button ${packet.button}
-//                Slot ${packet.slot}
-//                WindowClickType ${packet.windowClickType}
-//                StateID ${packet.stateId}
-//                ActionNumber ${packet.actionNumber}
-//            """.trimIndent())
+
             menuService.handleClickInventory(player, packet)
 
         }

@@ -1,6 +1,7 @@
 package net.craftoriya.packetuxui.service
 
 import com.github.retrooper.packetevents.protocol.item.ItemStack
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
@@ -9,6 +10,7 @@ import net.craftoriya.packetuxui.common.PacketUtils.Companion.receivePacket
 import net.craftoriya.packetuxui.common.PacketUtils.Companion.sendPacket
 import net.craftoriya.packetuxui.dto.AccumulatedDrag
 import net.craftoriya.packetuxui.types.ButtonType
+import net.craftoriya.packetuxui.types.ClickData
 import net.craftoriya.packetuxui.types.ClickType
 import net.craftoriya.packetuxui.types.ExecuteComponent
 import org.bukkit.entity.Player
@@ -17,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 class MenuService {
     private val viewers = ConcurrentHashMap<Player, Menu>()
-    val carriedItem = ConcurrentHashMap<Player, ItemStack>()
+    private val carriedItem = ConcurrentHashMap<Player, ItemStack>()
     private val accumulatedDrag = ConcurrentHashMap<Player, MutableList<AccumulatedDrag>>()
 
 
@@ -37,23 +39,24 @@ class MenuService {
         val menu = viewers[player] ?: error("Menu under player key not found.")
         val clickData = getClickType(packet)
 
-        updateCarriedItem(player, packet.carriedItemStack, clickData.second)
+        updateCarriedItem(player, packet.carriedItemStack, clickData.clickType)
 
-        if (clickData.second == ClickType.DRAG_END) {
+        if (clickData.clickType == ClickType.DRAG_END) {
             handleDragEnd(player, menu)
         }
         player.receivePacket(createAdjustedClickPacket(packet, menu))
     }
 
-    fun handleClickMenu(player: Player, clickData: Pair<ButtonType, ClickType>, slot: Int) {
+    fun handleClickMenu(player: Player, clickData: ClickData, slot: Int) {
 
-        if (clickData.second == ClickType.DRAG_END) {
+        if (clickData.clickType == ClickType.DRAG_END) {
             clearAccumulatedDrag(player)
         }
         val carriedItem = carriedItem[player]
         val menu = viewers[player] ?: error("Menu under player key not found.")
 
         val menuContentPacket = WrapperPlayServerWindowItems(126, 0, menu.contentPacket.items, carriedItem)
+
         val button = menu.buttons[slot]
         if (button == null) {
             player.sendPacket(menuContentPacket)
@@ -76,7 +79,7 @@ class MenuService {
             it(
                 ExecuteComponent(
                     player,
-                    clickData.first,
+                    clickData.buttonType,
                     slot,
                     carriedItem
                 )
@@ -147,13 +150,13 @@ class MenuService {
 
     fun isMenuClick(
         wrapper: WrapperPlayClientClickWindow,
-        clickType: Pair<ButtonType, ClickType>,
+        clickType: ClickType,
         player: Player
     ): Boolean {
         val menu = viewers[player] ?: error("Menu under player key not found.")
         val slotRange = 0..menu.type.lastIndex
 
-        return when (clickType.second) {
+        return when (clickType) {
             ClickType.SHIFT_CLICK -> true
             in listOf(ClickType.PICKUP, ClickType.PLACE) -> wrapper.slot in slotRange
             ClickType.DRAG_END, ClickType.PICKUP_ALL ->
@@ -163,74 +166,73 @@ class MenuService {
         }
     }
 
-
-    fun reRenderCarriedItem(player: Player) {
-        player.sendPacket(WrapperPlayServerSetSlot(-1, 0, -1, carriedItem[player]))
-    }
-
-    fun getClickType(packet: WrapperPlayClientClickWindow): Pair<ButtonType, ClickType> {
+    fun getClickType(packet: WrapperPlayClientClickWindow): ClickData {
         return when (packet.windowClickType) {
             WindowClickType.PICKUP -> {
-                if (packet.carriedItemStack != ItemStack.EMPTY) {
-                    if (packet.button == 0) Pair(ButtonType.LEFT, ClickType.PICKUP)
-                    else Pair(ButtonType.RIGHT, ClickType.PICKUP)
-                } else {
-                    Pair(ButtonType.RIGHT, ClickType.PLACE)
+                val carriedItem = packet.carriedItemStack
+                val isCarriedItemExist =
+                    carriedItem != null && carriedItem != ItemStack.EMPTY && carriedItem.type != ItemTypes.AIR
+                when (packet.button) {
+                    0 -> ClickData(ButtonType.LEFT, if (isCarriedItemExist) ClickType.PICKUP else ClickType.PLACE)
+                    else -> ClickData(
+                        ButtonType.RIGHT,
+                        if (isCarriedItemExist) ClickType.PLACE else ClickType.PICKUP
+                    )
                 }
             }
 
             WindowClickType.QUICK_MOVE -> {
                 if (packet.button == 0) {
-                    Pair(ButtonType.SHIFT_LEFT, ClickType.SHIFT_CLICK)
+                    ClickData(ButtonType.SHIFT_LEFT, ClickType.SHIFT_CLICK)
                 } else {
-                    Pair(ButtonType.SHIFT_RIGHT, ClickType.SHIFT_CLICK)
+                    ClickData(ButtonType.SHIFT_RIGHT, ClickType.SHIFT_CLICK)
                 }
             }
 
             WindowClickType.SWAP -> {
                 when (packet.button) {
-                    in 0..8 -> Pair(ButtonType.entries[9 + packet.button], ClickType.PICKUP)
-                    40 -> Pair(ButtonType.F, ClickType.PICKUP)
-                    else -> Pair(ButtonType.LEFT, ClickType.PLACE)
+                    in 0..8 -> ClickData(ButtonType.entries[9 + packet.button], ClickType.PICKUP)
+                    40 -> ClickData(ButtonType.F, ClickType.PICKUP)
+                    else -> ClickData(ButtonType.LEFT, ClickType.PLACE)
                 }
             }
 
             WindowClickType.CLONE -> {
-                Pair(ButtonType.MIDDLE, ClickType.PICKUP)
+                ClickData(ButtonType.MIDDLE, ClickType.PICKUP)
             }
 
             WindowClickType.THROW -> {
                 if (packet.button == 0) {
-                    Pair(ButtonType.DROP, ClickType.PICKUP)
+                    ClickData(ButtonType.DROP, ClickType.PICKUP)
                 } else {
-                    Pair(ButtonType.CTRL_DROP, ClickType.PICKUP)
+                    ClickData(ButtonType.CTRL_DROP, ClickType.PICKUP)
                 }
             }
 
             WindowClickType.QUICK_CRAFT -> {
                 when (packet.button) {
-                    0 -> Pair(ButtonType.LEFT, ClickType.DRAG_START)
-                    4 -> Pair(ButtonType.RIGHT, ClickType.DRAG_START)
-                    8 -> Pair(ButtonType.MIDDLE, ClickType.DRAG_START)
+                    0 -> ClickData(ButtonType.LEFT, ClickType.DRAG_START)
+                    4 -> ClickData(ButtonType.RIGHT, ClickType.DRAG_START)
+                    8 -> ClickData(ButtonType.MIDDLE, ClickType.DRAG_START)
 
-                    1 -> Pair(ButtonType.LEFT, ClickType.DRAG_ADD)
-                    5 -> Pair(ButtonType.RIGHT, ClickType.DRAG_ADD)
-                    9 -> Pair(ButtonType.MIDDLE, ClickType.DRAG_ADD)
+                    1 -> ClickData(ButtonType.LEFT, ClickType.DRAG_ADD)
+                    5 -> ClickData(ButtonType.RIGHT, ClickType.DRAG_ADD)
+                    9 -> ClickData(ButtonType.MIDDLE, ClickType.DRAG_ADD)
 
-                    2 -> Pair(ButtonType.LEFT, ClickType.DRAG_END)
-                    6 -> Pair(ButtonType.RIGHT, ClickType.DRAG_END)
-                    10 -> Pair(ButtonType.MIDDLE, ClickType.DRAG_END)
+                    2 -> ClickData(ButtonType.LEFT, ClickType.DRAG_END)
+                    6 -> ClickData(ButtonType.RIGHT, ClickType.DRAG_END)
+                    10 -> ClickData(ButtonType.MIDDLE, ClickType.DRAG_END)
 
-                    else -> Pair(ButtonType.LEFT, ClickType.UNDEFINED)
+                    else -> ClickData(ButtonType.LEFT, ClickType.UNDEFINED)
                 }
             }
 
             WindowClickType.PICKUP_ALL -> {
-                Pair(ButtonType.DOUBLE_CLICK, ClickType.PICKUP_ALL)
+                ClickData(ButtonType.DOUBLE_CLICK, ClickType.PICKUP_ALL)
             }
 
             else -> {
-                Pair(ButtonType.LEFT, ClickType.UNDEFINED)
+                ClickData(ButtonType.LEFT, ClickType.UNDEFINED)
             }
         }
     }
@@ -284,7 +286,7 @@ class MenuService {
     }
 
     private fun updateCarriedItem(player: Player, carriedItemStack: ItemStack?, clickType: ClickType) {
-        if (carriedItemStack == null) {
+        if (carriedItemStack == null || carriedItemStack.type == ItemTypes.AIR) {
             carriedItem.remove(player)
             return
         }
@@ -295,11 +297,6 @@ class MenuService {
 
             else -> carriedItem.remove(player)
         }
-//        if ((carriedItem[player]?.type ?: ItemTypes.AIR) == ItemTypes.ACACIA_SIGN){
-//            println("""
-//                $clickType
-//            """.trimIndent())
-//        }
     }
 }
 

@@ -2,14 +2,8 @@
 
 !/API/src
 !/API/build.gradle.kts
-!/API/gradle.properties
-!/API/gradlew
-!/API/gradlew.bat
 !/API/settings.gradle.kts
 
 !/TestMenu/src
 !/TestMenu/build.gradle.kts
-!/TestMenu/gradle.properties
-!/TestMenu/gradlew
-!/TestMenu/gradlew.bat
 !/TestMenu/settings.gradle.kts

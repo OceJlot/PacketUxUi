@@ -10,13 +10,13 @@ enum class ButtonType {
     DROP,
     CTRL_DROP,
     DOUBLE_CLICK,
-    NUMBER_KEY_1,
-    NUMBER_KEY_2,
-    NUMBER_KEY_3,
-    NUMBER_KEY_4,
-    NUMBER_KEY_5,
-    NUMBER_KEY_6,
-    NUMBER_KEY_7,
-    NUMBER_KEY_8,
-    NUMBER_KEY_9
+    NUM_1,
+    NUM_2,
+    NUM_3,
+    NUM_4,
+    NUM_5,
+    NUM_6,
+    NUM_7,
+    NUM_8,
+    NUM_9
 }
