@@ -81,7 +81,24 @@ class CommandListener(
                 This is a comprehensive all-in-one menu.
                 
                 """.trimIndent()
-            )
+            ),
+
+            //DSL
+            "dsl__without_content" to Pair(
+                DslMenus.menuWithoutContent, """
+                
+                Dsl example. Menu without content.
+                
+                """.trimIndent()
+            ),
+
+            "dsl__test" to Pair(
+                DslMenus.menuWithButtons, """
+                
+                Dsl example. Menu with content
+                
+                """.trimIndent()
+            ),
         )
 
         for ((subcommand, menuData) in subcommands) {

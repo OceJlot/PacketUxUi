@@ -43,22 +43,19 @@ tasks {
         downloadPlugins {
             modrinth("ViaVersion", "5.2.0")
             modrinth("ViaBackwards", "5.2.0")
-            modrinth("ServerUtils", "3.5.4")
-            hangar("TabTPS", "1.3.21")
         }
     }
     shadowJar {
         mergeServiceFiles()
-        exclude("kotlin/**")
-        exclude("kotlinx/coroutines/**")
+//        exclude("kotlin/**")
+//        exclude("kotlinx/coroutines/**")
     }
 }
 
-tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(21)
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions {
+        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
     }
-    jvmArgs("-XX:+AllowEnhancedClassRedefinition")
 }
 
 kotlin {

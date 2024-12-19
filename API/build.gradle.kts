@@ -18,7 +18,7 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
     compileOnly("com.github.retrooper:packetevents-spigot:2.6.0")
-    compileOnly(kotlin("stdlib-jdk8"))
+//    compileOnly(kotlin("stdlib-jdk8"))
 }
 
 tasks {
@@ -36,8 +36,6 @@ tasks.withType<JavaCompile> {
 kotlin {
     jvmToolchain(21)
 }
-
-
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions {
