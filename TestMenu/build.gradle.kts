@@ -1,8 +1,7 @@
 plugins {
     kotlin("jvm") version "2.0.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.0.1"
-
+    id("xyz.jpenilla.run-paper") version "2.2.0"
 }
 
 group = "net.craftoriya"
@@ -41,7 +40,25 @@ tasks.processResources {
 tasks {
     runServer {
         minecraftVersion("1.21.1")
+        downloadPlugins {
+            modrinth("ViaVersion", "5.2.0")
+            modrinth("ViaBackwards", "5.2.0")
+            modrinth("ServerUtils", "3.5.4")
+            hangar("TabTPS", "1.3.21")
+        }
     }
+    shadowJar {
+        mergeServiceFiles()
+        exclude("kotlin/**")
+        exclude("kotlinx/coroutines/**")
+    }
+}
+
+tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    jvmArgs("-XX:+AllowEnhancedClassRedefinition")
 }
 
 kotlin {

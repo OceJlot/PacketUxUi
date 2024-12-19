@@ -37,6 +37,14 @@ kotlin {
     jvmToolchain(21)
 }
 
+
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions {
+        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
