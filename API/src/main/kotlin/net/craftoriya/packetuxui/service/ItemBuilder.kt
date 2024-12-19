@@ -29,7 +29,7 @@ open class ItemBuilder {
         return this
     }
 
-    fun lore(lore: MutableList<Component>): ItemBuilder {
+    fun lore(lore: List<Component>): ItemBuilder {
         this.lore += lore.map { it.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE) }
         return this
     }
