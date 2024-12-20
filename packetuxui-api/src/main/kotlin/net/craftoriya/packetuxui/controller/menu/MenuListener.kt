@@ -12,12 +12,9 @@ object MenuListener {
     fun onClickWindow(event: PacketReceiveEvent) {
         val packetType = event.packetType
         val packetUser = event.user
+        val packetUserUuid = packetUser.uuid ?: return
 
-        if (packetUser.uuid == null) {
-            return
-        }
-
-        val user = UserManager[packetUser.uuid]
+        val user = UserManager[packetUserUuid]
 
         if (packetType == PacketType.Play.Client.CLOSE_WINDOW) {
             menuService.onCloseMenu(user)
