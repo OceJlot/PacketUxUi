@@ -27,11 +27,6 @@
       <option name="url" value="https://repo.papermc.io/repository/maven-public/" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="MavenLocal" />
-      <option name="name" value="MavenLocal" />
-      <option name="url" value="file:/$MAVEN_REPOSITORY$/" />
-    </remote-repository>
-    <remote-repository>
       <option name="id" value="Gradle Central Plugin Repository" />
       <option name="name" value="Gradle Central Plugin Repository" />
       <option name="url" value="https://plugins.gradle.org/m2" />
