@@ -8,9 +8,7 @@ import net.craftoriya.packetuxui.user.UserManager
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 
-object PacketUxUiBukkit : PacketUxUiApi {
-
-    override var initialized = false
+object PacketUxUiBukkit : PacketUxUiApi() {
 
     override fun initPlatform() {
         UserManager.userCreator = { uuid -> BukkitUser(uuid) }

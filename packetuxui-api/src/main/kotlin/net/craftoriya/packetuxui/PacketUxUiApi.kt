@@ -4,11 +4,11 @@ import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.event.PacketListenerPriority
 import net.craftoriya.packetuxui.controller.PacketListener
 
-interface PacketUxUiApi {
-    var initialized: Boolean
+abstract class PacketUxUiApi {
+    private var initialized = false
 
-    fun initPlatform()
-    fun terminatePlatform()
+    abstract fun initPlatform()
+    abstract fun terminatePlatform()
 
     fun init() {
         if (initialized) return
