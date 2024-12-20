@@ -23,22 +23,23 @@ class AllInOne {
     private val air: ItemStack = ItemStack.builder().type(ItemTypes.AIR).build()
     private val updateButtons = listOf(2, 4, 6, 8, 10)
 
-    init {
-        // Dynamic updates for specific slots
-
-        plugin.launch {
-            for (player in Bukkit.getOnlinePlayers()) {
-                if (menuService.getMenu(player)?.name == menu.name) {
-                    for (slot in updateButtons) {
-                        if (chance(20)) {
-                            val item = if (chance(50)) stone else air
-                            menuService.updateItem(player, item, slot)
+    fun startUpdate() {
+        plugin.launch { // This job is not stopped when the menu closes
+            while (true) {
+                println("tick")
+                for (player in Bukkit.getOnlinePlayers()) {
+                    if (menuService.getMenu(player)?.name == menu.name) {
+                        for (slot in updateButtons) {
+                            if (chance(20)) {
+                                val item = if (chance(50)) stone else air
+                                menuService.updateItem(player, item, slot)
+                            }
                         }
                     }
                 }
-            }
 
-            delay(200)
+                delay(200)
+            }
         }
     }
 

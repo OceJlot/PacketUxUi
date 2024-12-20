@@ -11,6 +11,10 @@ coroutines = "1.9.0"
 mccoroutine-velocity = "2.20.0"
 mccoroutine-folia = "2.20.0"
 adventure = "4.17.0"
+commandapi-bukkit = "9.6.0"
+commandapi-bukkit-kotlin = "9.6.0"
+commandapi-velocity = "9.6.0-SNAPSHOT"
+commandapi-velocity-kotlin = "9.6.0-SNAPSHOT"
 
 [libraries]
 kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin-jvm" }
@@ -31,3 +35,7 @@ mccoroutine-folia-core = { module = "com.github.shynixn.mccoroutine:mccoroutine-
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
 adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
 adventure-plaintext = { module = "net.kyori:adventure-text-serializer-plain", version.ref = "adventure" }
+commandapi-bukkit = { module = "dev.jorel:commandapi-bukkit-core", version.ref = "commandapi-bukkit" }
+commandapi-bukkit-kotlin = { module = "dev.jorel:commandapi-bukkit-kotlin", version.ref = "commandapi-bukkit-kotlin" }
+commandapi-velocity = { module = "dev.jorel:commandapi-velocity-shade", version.ref = "commandapi-velocity" }
+commandapi-velocity-kotlin = { module = "dev.jorel:commandapi-velocity-kotlin", version.ref = "commandapi-velocity-kotlin" }

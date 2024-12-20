@@ -3,7 +3,7 @@ package net.craftoriya
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
-import net.craftoriya.commands.CommandListener
+import net.craftoriya.commands.OpenMenuCommand
 import net.craftoriya.packetuxui.bukkit.PacketUxUiBukkit
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -20,7 +20,7 @@ class TestMenu : SuspendingJavaPlugin() {
         PacketUxUiBukkit.init()
 
         // Commands
-        CommandListener
+        OpenMenuCommand
     }
 
     override suspend fun onDisableAsync() {
