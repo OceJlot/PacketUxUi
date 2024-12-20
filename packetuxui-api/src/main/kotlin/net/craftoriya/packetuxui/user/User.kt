@@ -9,11 +9,10 @@ import java.util.*
 interface User {
 
     val uuid: UUID
-
-    fun updateInventory()
-
     val packetUser: User?
     val player: Any?
+
+    fun updateInventory()
 
     fun sendPacket(wrapper: PacketWrapper<*>) = this.packetUser?.sendPacket(wrapper)
 
