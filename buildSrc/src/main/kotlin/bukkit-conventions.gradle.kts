@@ -6,7 +6,11 @@ plugins {
 }
 
 tasks.runServer {
-    minecraftVersion("1.21.4")
+    minecraftVersion("1.21.1")
+
+    downloadPlugins {
+        modrinth("packetevents", "2.7.0")
+    }
 }
 
 paper {

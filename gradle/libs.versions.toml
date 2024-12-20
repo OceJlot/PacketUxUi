@@ -2,7 +2,7 @@
 kotlin-jvm = "2.0.21"
 shadow-jar = "8.3.5"
 fastutil = "8.5.15"
-paper = "1.21.4-R0.1-SNAPSHOT"
+paper = "1.21.1-R0.1-SNAPSHOT"
 packetevents = "2.6.0"
 plugin-yml = "0.6.0"
 run-paper = "2.3.1"
@@ -10,13 +10,16 @@ run-velocity = "2.3.1"
 coroutines = "1.9.0"
 mccoroutine-velocity = "2.20.0"
 mccoroutine-folia = "2.20.0"
+adventure = "4.17.0"
 
 [libraries]
 kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin-jvm" }
 shadow-jar = { module = "com.gradleup.shadow:shadow-gradle-plugin", version.ref = "shadow-jar" }
 fastutil = { module = "it.unimi.dsi:fastutil", version.ref = "fastutil" }
 paper = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
-packetevents = { module = "com.github.retrooper:packetevents-spigot", version.ref = "packetevents" }
+packetevents-bukkit = { module = "com.github.retrooper:packetevents-spigot", version.ref = "packetevents" }
+packetevents-velocity = { module = "com.github.retrooper:packetevents-velocity", version.ref = "packetevents" }
+packetevents-api = { module = "com.github.retrooper:packetevents-api", version.ref = "packetevents" }
 plugin-yml = { module = "net.minecrell:plugin-yml", version.ref = "plugin-yml" }
 run-paper = { module = "xyz.jpenilla:run-task", version.ref = "run-paper" }
 run-velocity = { module = "xyz.jpenilla:run-task", version.ref = "run-velocity" }
@@ -25,3 +28,6 @@ mccoroutine-velocity = { module = "com.github.shynixn.mccoroutine:mccoroutine-ve
 mccoroutine-velocity-core = { module = "com.github.shynixn.mccoroutine:mccoroutine-velocity-core", version.ref = "mccoroutine-velocity" }
 mccoroutine-folia = { module = "com.github.shynixn.mccoroutine:mccoroutine-folia-api", version.ref = "mccoroutine-folia" }
 mccoroutine-folia-core = { module = "com.github.shynixn.mccoroutine:mccoroutine-folia-core", version.ref = "mccoroutine-folia" }
+adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
+adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
+adventure-plaintext = { module = "net.kyori:adventure-text-serializer-plain", version.ref = "adventure" }

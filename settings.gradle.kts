@@ -4,5 +4,7 @@ plugins {
 
 rootProject.name = "PacketUxUi"
 
-include("API")
-include("TestMenu")
+include("packetuxui-api")
+include("packetuxui-bukkit")
+
+include("packetuxui-examples:packetuxui-testmenu")
