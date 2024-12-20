@@ -23,3 +23,9 @@ class ButtonBuilder : IButtonBuilder {
 
     override fun build() = Button(item, click, cooldown)
 }
+
+@Target(AnnotationTarget.TYPE)
+@DslMarker
+annotation class ButtonBuilderDslMarker
+
+fun button(builder: @ButtonBuilderDslMarker ButtonBuilder.() -> Unit): Button = ButtonBuilder().apply(builder).build()

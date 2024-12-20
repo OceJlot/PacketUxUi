@@ -130,6 +130,7 @@ fun Sequence<Long>.toLongSet() = toMutableLongSet().freeze()
 fun <V> mutableInt2ObjectMapOf(vararg pairs: Pair<Int, V>) =
     Int2ObjectOpenHashMap<V>(pairs.size).apply { putAll(pairs) }
 fun <V> mutableInt2ObjectMapOf(map: Map<Int, V>) = Int2ObjectOpenHashMap<V>(map)
+fun <V> mutableInt2ObjectMapOf(size: Int) = Int2ObjectOpenHashMap<V>(size)
 fun <V> mutableInt2ObjectMapOf() = Int2ObjectOpenHashMap<V>()
 fun <V> int2ObjectMapOf(vararg pairs: Pair<Int, V>) = mutableInt2ObjectMapOf(*pairs).freeze()
 fun <V> int2ObjectMapOf() = emptyInt2ObjectMap<V>()
