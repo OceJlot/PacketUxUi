@@ -1,12 +1,12 @@
 package net.craftoriya.packetuxui.dto
 
-import net.craftoriya.packetuxui.types.ExecuteComponent
+import net.craftoriya.packetuxui.types.ExecutableComponent
 import kotlin.math.max
 
 data class CooldownComponent(
     val delay: Long = 0,
-    val execute: ((ExecuteComponent) -> Unit)? = null,
     val freeze: Long = 0,
+    val execute: ExecutableComponent? = null,
 ) {
 
     private var expireTime: Long = 0

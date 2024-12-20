@@ -15,6 +15,9 @@ commandapi-bukkit = "9.6.0"
 commandapi-bukkit-kotlin = "9.6.0"
 commandapi-velocity = "9.6.0-SNAPSHOT"
 commandapi-velocity-kotlin = "9.6.0-SNAPSHOT"
+caffeine-courotines = "2.0.1"
+okhttp = "5.0.0-alpha.14"
+gson = "2.11.0"
 
 [libraries]
 kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin-jvm" }
@@ -39,3 +42,7 @@ commandapi-bukkit = { module = "dev.jorel:commandapi-bukkit-core", version.ref =
 commandapi-bukkit-kotlin = { module = "dev.jorel:commandapi-bukkit-kotlin", version.ref = "commandapi-bukkit-kotlin" }
 commandapi-velocity = { module = "dev.jorel:commandapi-velocity-shade", version.ref = "commandapi-velocity" }
 commandapi-velocity-kotlin = { module = "dev.jorel:commandapi-velocity-kotlin", version.ref = "commandapi-velocity-kotlin" }
+caffeine-courotines = { module = "com.sksamuel.aedile:aedile-core", version.ref = "caffeine-courotines" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okhttp-kotlin = { module = "com.squareup.okhttp3:okhttp-coroutines", version.ref = "okhttp" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }

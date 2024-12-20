@@ -7,83 +7,73 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentType
 import com.github.retrooper.packetevents.protocol.item.type.ItemType
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
+import net.craftoriya.packetuxui.common.mutableObject2IntMapOf
+import net.craftoriya.packetuxui.common.mutableObjectListOf
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextDecoration
 
 open class ItemBuilder {
     var itemType: ItemType = ItemTypes.AIR
     var name: Component? = null
-    var lore: MutableList<Component> = mutableListOf()
-    var amount: Int = 1
-    var enchantments: MutableMap<EnchantmentType, Int> = mutableMapOf()
-    var enchantVisibility: Boolean = true
-    var cmd: Int? = null
+    var lore = mutableObjectListOf<Component>()
+    var amount = 1
+    var enchantments = mutableObject2IntMapOf<EnchantmentType>()
+    var enchantVisibility = true
+    var modelData: Int? = null
 
-    fun itemType(itemType: ItemType): ItemBuilder {
-        this.itemType = itemType
-        return this
-    }
+    fun itemType(itemType: ItemType) = apply { this.itemType = itemType }
+    fun name(name: Component) = apply { this.name = name }
 
-    fun name(name: Component): ItemBuilder {
-        this.name = name
-        return this
-    }
-
-    fun lore(lore: MutableList<Component>): ItemBuilder {
+    fun lore(lore: MutableList<Component>) = apply {
         this.lore += lore.map {
             it.decorationIfAbsent(
                 TextDecoration.ITALIC,
                 TextDecoration.State.FALSE
             )
         }
-        return this
     }
 
-    fun lore(lore: Component): ItemBuilder {
+    fun lore(lore: Component) = apply {
         this.lore += lore.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
-        return this
     }
 
-    fun lore(vararg lore: Component): ItemBuilder {
+    fun lore(vararg lore: Component) = apply {
         this.lore += lore.map {
             it.decorationIfAbsent(
                 TextDecoration.ITALIC,
                 TextDecoration.State.FALSE
             )
         }
-        return this
     }
 
-
-    fun amount(amount: Int): ItemBuilder {
-        this.amount = amount
-        return this
-    }
+    fun amount(amount: Int) = apply { this.amount = amount }
 
     fun enchantments(
         enchantments: MutableMap<EnchantmentType, Int>,
-        visible: Boolean
-    ): ItemBuilder {
+        visible: Boolean = true
+    ) = apply {
         this.enchantments += enchantments
         this.enchantVisibility = visible
-        return this
+    }
+
+    fun enchantments(
+        vararg enchantments: Pair<EnchantmentType, Int>,
+        visible: Boolean = true
+    ) = apply {
+        this.enchantments += enchantments
+        this.enchantVisibility = visible
     }
 
     fun enchantment(
         enchantment: EnchantmentType,
         level: Int,
         visible: Boolean = true
-    ): ItemBuilder {
-        this.enchantments = this.enchantments.toMutableMap()
+    ) = apply {
         this.enchantments[enchantment] = level
         this.enchantVisibility = visible
-        return this
     }
 
-    fun cmd(cmd: Int): ItemBuilder {
-        this.cmd = cmd
-        return this
-    }
+    fun cmd(cmd: Int) = apply { this.modelData = cmd }
 
     open fun build(): ItemStack {
         val item = ItemStack.builder()
@@ -94,7 +84,7 @@ open class ItemBuilder {
                 ComponentTypes.ENCHANTMENTS,
                 ItemEnchantments(enchantments, enchantVisibility)
             )
-        cmd?.let { item.component(ComponentTypes.CUSTOM_MODEL_DATA, it) }
+        modelData?.let { item.component(ComponentTypes.CUSTOM_MODEL_DATA, it) }
         name?.let { item.component(ComponentTypes.ITEM_NAME, it) }
         return item.build()
     }

@@ -3,11 +3,11 @@ package net.craftoriya.packetuxui.service
 import com.github.retrooper.packetevents.protocol.item.ItemStack
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems
+import net.craftoriya.packetuxui.common.mutableInt2ObjectMapOf
+import net.craftoriya.packetuxui.common.synchronize
 import net.craftoriya.packetuxui.dto.CooldownComponent
 import net.craftoriya.packetuxui.types.InventoryType
 import net.kyori.adventure.text.Component
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
 
 open class Menu(
     val name: Component,
@@ -15,7 +15,7 @@ open class Menu(
     buttons: Map<Int, Button>,
     val cooldown: CooldownComponent = CooldownComponent()
 ) {
-    val buttons: ConcurrentMap<Int, Button> = ConcurrentHashMap(buttons)
+    val buttons = mutableInt2ObjectMapOf<Button>(buttons).synchronize()
 
     @Volatile
     var contentPacket: WrapperPlayServerWindowItems
@@ -31,10 +31,8 @@ open class Menu(
         val items = MutableList(type.size) { index ->
             this.buttons[index]?.item ?: ItemStack.EMPTY
         }
+        check(buttons.size <= type.size) { "Too many items in menu" }
 
-        if (buttons.size > type.size) {
-            throw IllegalArgumentException("Too many items in menu")
-        }
         menuPacket = WrapperPlayServerOpenWindow(126, type.id(), name)
         contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
     }

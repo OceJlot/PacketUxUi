@@ -6,6 +6,11 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap
+import it.unimi.dsi.fastutil.objects.ObjectList
+import net.craftoriya.packetuxui.common.mutableObject2ObjectMapOf
+import net.craftoriya.packetuxui.common.mutableObjectListOf
+import net.craftoriya.packetuxui.common.synchronize
 import net.craftoriya.packetuxui.dto.AccumulatedDrag
 import net.craftoriya.packetuxui.types.ButtonType
 import net.craftoriya.packetuxui.types.ClickData
@@ -13,15 +18,15 @@ import net.craftoriya.packetuxui.types.ClickType
 import net.craftoriya.packetuxui.types.ExecuteComponent
 import net.craftoriya.packetuxui.user.User
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 
 val menuService = MenuService
 
 object MenuService {
 
-    private val viewers = ConcurrentHashMap<User, Menu>()
-    private val carriedItem = ConcurrentHashMap<User, ItemStack>()
-    private val accumulatedDrag = ConcurrentHashMap<User, MutableList<AccumulatedDrag>>()
+    private val viewers = mutableObject2ObjectMapOf<User, Menu>().synchronize()
+    private val carriedItem = mutableObject2ObjectMapOf<User, ItemStack>().synchronize()
+    private val accumulatedDrag =
+        mutableObject2ObjectMapOf<User, ObjectList<AccumulatedDrag>>().synchronize()
 
     fun openMenu(user: User, menu: Menu) {
         viewers[user] = menu.copy()
@@ -92,7 +97,7 @@ object MenuService {
 
     fun updateItem(user: User, item: ItemStack, slot: Int) {
         val menu = getMenu(user) ?: return
-        if (slot > menu.type.lastIndex) throw IllegalArgumentException("Slot out of range.")
+        require(slot in 0..menu.type.lastIndex) { "Slot out of range." }
 
         val items = menu.contentPacket.items.toMutableList()
         items[slot] = item
@@ -101,9 +106,9 @@ object MenuService {
         user.sendPacket(WrapperPlayServerSetSlot(126, 0, slot, item))
     }
 
-    fun updateItems(user: User, newItems: Map<Int, ItemStack>) {
+    fun updateItems(user: User, newItems: Int2ObjectMap<ItemStack>) {
         val menu = getMenu(user) ?: return
-        if (newItems.keys.any { it > menu.type.lastIndex }) throw IllegalArgumentException("Slot out of range.")
+        require(newItems.keys.any { it in 0..menu.type.lastIndex }) { "Slot out of range." }
 
         val items = menu.contentPacket.items.toMutableList()
         newItems.forEach { (slot, item) ->
@@ -118,7 +123,7 @@ object MenuService {
 
     fun updateButton(user: User, newButton: Button, slot: Int) {
         val menu = getMenu(user) ?: return
-        if (slot > menu.type.lastIndex) throw IllegalArgumentException("Slot out of range.")
+        require(slot in 0..menu.type.lastIndex) { "Slot out of range." }
 
         menu.buttons[slot] = newButton
         val items = menu.contentPacket.items.toMutableList()
@@ -128,11 +133,9 @@ object MenuService {
         user.sendPacket(WrapperPlayServerSetSlot(126, 0, slot, newButton.item))
     }
 
-    fun updateButtons(user: User, newButtons: Map<Int, Button>) {
+    fun updateButtons(user: User, newButtons: Int2ObjectMap<Button>) {
         val menu = getMenu(user) ?: return
-        if (newButtons.any { (slot, _) -> slot > menu.type.lastIndex }) {
-            throw IllegalArgumentException("Slot out of range.")
-        }
+        require(newButtons.keys.any { it in 0..menu.type.lastIndex }) { "Slot out of range." }
 
         menu.buttons.clear()
         menu.buttons.putAll(newButtons)
@@ -161,9 +164,10 @@ object MenuService {
 
         return when (clickType) {
             ClickType.SHIFT_CLICK -> true
-            in listOf(ClickType.PICKUP, ClickType.PLACE) -> wrapper.slot in slotRange
+            ClickType.PICKUP, ClickType.PLACE -> wrapper.slot in slotRange
             ClickType.DRAG_END, ClickType.PICKUP_ALL ->
-                wrapper.slot in slotRange || wrapper.slots.orElse(emptyMap()).keys.any { it in slotRange }
+                wrapper.slot in slotRange || wrapper.slots.map { it.keys.any { it in slotRange } }
+                    .orElse(false)
 
             else -> false
         }
@@ -246,7 +250,8 @@ object MenuService {
 
 
     fun accumulateDrag(user: User, packet: WrapperPlayClientClickWindow, type: ClickType) {
-        accumulatedDrag.getOrPut(user) { mutableListOf() }.add(AccumulatedDrag(packet, type))
+        accumulatedDrag.computeIfAbsent(user) { mutableObjectListOf() }
+            .add(AccumulatedDrag(packet, type))
     }
 
     private fun handleDragEnd(user: User, menu: Menu) {

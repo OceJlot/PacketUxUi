@@ -11,4 +11,8 @@ dependencies {
 
     api(libs.fastutil)
     api(libs.coroutines)
+    api(libs.okhttp)
+    api(libs.okhttp.kotlin)
+    api(libs.caffeine.courotines)
+    api(libs.gson)
 }

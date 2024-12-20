@@ -6,23 +6,33 @@ import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemLor
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemProfile
 import com.github.retrooper.packetevents.protocol.item.ItemStack
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
+import kotlinx.coroutines.launch
+import net.craftoriya.packetuxui.util.PlayerSkinFetcher
+import net.craftoriya.packetuxui.util.SkinFetcherScope
+import java.util.*
 
 class HeadItemBuilder : ItemBuilder() {
     var base64: String = ""
 
-    fun headTextureFromName(name: String): HeadItemBuilder {
+    fun headTextureFromName(name: String) = apply {
         println("Fetching head texture for name: $name")
-        return this
     }
 
-    fun headTextureFromUrl(url: String): HeadItemBuilder {
+    fun headTextureFromUrl(url: String) = apply {
         println("Fetching head texture from URL: $url")
-        return this
     }
 
-    fun headTextureFromUuid(uuid: String): HeadItemBuilder {
+    fun headTextureFromUuid(uuid: UUID) = apply {
         println("Fetching head texture for UUID: $uuid")
-        return this
+        SkinFetcherScope.launch {
+            val properties = PlayerSkinFetcher.fetchSkin(uuid)
+            val texture = properties.firstOrNull { it.name == "textures" }
+            if (texture != null) {
+                base64 = texture.value
+            } else {
+                println("Failed to fetch head texture for UUID: $uuid")
+            }
+        }
     }
 
     override fun build(): ItemStack {
@@ -34,16 +44,13 @@ class HeadItemBuilder : ItemBuilder() {
                 ComponentTypes.ENCHANTMENTS,
                 ItemEnchantments(enchantments, enchantVisibility)
             )
-        cmd?.let { item.component(ComponentTypes.CUSTOM_MODEL_DATA, it) }
+        modelData?.let { item.component(ComponentTypes.CUSTOM_MODEL_DATA, it) }
         name?.let { item.component(ComponentTypes.ITEM_NAME, it) }
 
         if (itemType == ItemTypes.PLAYER_HEAD) {
             item.component(
-                ComponentTypes.PROFILE, ItemProfile(
-                    null, null, listOf(
-                        ItemProfile.Property("textures", base64, null)
-                    )
-                )
+                ComponentTypes.PROFILE,
+                ItemProfile(null, null, listOf(ItemProfile.Property("textures", base64, null)))
             )
         }
         return item.build()
