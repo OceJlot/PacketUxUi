@@ -1,6 +1,7 @@
 package net.craftoriya.packetuxui.bukkit.user
 
 import com.github.retrooper.packetevents.PacketEvents
+import com.github.retrooper.packetevents.protocol.player.User as PacketUser
 import net.craftoriya.packetuxui.bukkit.extensions.toPlayer
 import net.craftoriya.packetuxui.user.User
 import net.kyori.adventure.text.Component
@@ -13,7 +14,7 @@ class BukkitUser(override val uuid: UUID) : User {
         player?.updateInventory()
     }
 
-    override val packetUser: com.github.retrooper.packetevents.protocol.player.User?
+    override val packetUser: PacketUser?
         get() = player?.let { PacketEvents.getAPI().playerManager.getUser(it) }
 
     override val player: Player?
