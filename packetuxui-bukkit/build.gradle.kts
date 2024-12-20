@@ -9,3 +9,8 @@ dependencies {
 
     api(project(":packetuxui-api"))
 }
+
+configurations.runtimeClasspath {
+    val fastUtil = libs.fastutil.get()
+    exclude(fastUtil.group, fastUtil.name)
+}
