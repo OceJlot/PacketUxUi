@@ -1,23 +1,23 @@
 package net.craftoriya.packetuxui.user
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectMaps
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import net.craftoriya.packetuxui.common.freeze
+import net.craftoriya.packetuxui.common.mutableObject2ObjectMapOf
 import java.util.*
+
+typealias UserCreator = (UUID) -> User
 
 object UserManager {
 
-    private val _users = Object2ObjectOpenHashMap<UUID, User>()
-    val users = Object2ObjectMaps.unmodifiable(_users)
+    private val _users = mutableObject2ObjectMapOf<UUID, User>()
+    val users = _users.freeze()
 
-    var userCreator: ((UUID) -> User)? = null
+    lateinit var userCreator: UserCreator
 
     /**
      * Gets a user from the cache or creates a new one if it doesn't exist.
      */
     operator fun get(uuid: UUID): User {
-        return _users.computeIfAbsent(uuid) { newUuid: UUID ->
-            userCreator?.invoke(newUuid) ?: throw IllegalStateException("User creator is not set")
-        }
+        return _users.computeIfAbsent(uuid) { uuid: UUID -> userCreator(uuid) }
     }
 
     /**
@@ -26,5 +26,4 @@ object UserManager {
     fun remove(uuid: UUID) {
         _users.remove(uuid)
     }
-
 }
