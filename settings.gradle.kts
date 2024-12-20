@@ -1,8 +1,10 @@
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
+
 rootProject.name = "PacketUxUi"
 
-include("API")
-include("TestMenu")
+include("packetuxui-api")
+include("packetuxui-bukkit")
 
+include("packetuxui-examples:packetuxui-testmenu")

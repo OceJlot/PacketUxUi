@@ -1,7 +1,5 @@
-*
-!/API/src
-!/API/build.gradle.kts
-!/TestMenu/src
-!/TestMenu/build.gradle.kts
-!build.gradle.kts
-!settings.gradle.kts
+.gradle
+target/
+build/
+run/
+.kotlin
