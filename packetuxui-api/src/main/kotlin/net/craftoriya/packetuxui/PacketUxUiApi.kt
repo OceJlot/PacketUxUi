@@ -1,7 +1,6 @@
 package net.craftoriya.packetuxui
 
 import com.github.retrooper.packetevents.PacketEvents
-import com.github.retrooper.packetevents.event.PacketListenerPriority
 import net.craftoriya.packetuxui.controller.PacketListener
 
 abstract class PacketUxUiApi {
@@ -22,9 +21,7 @@ abstract class PacketUxUiApi {
             packetEvents.init()
         }
 
-        packetEvents.eventManager.registerListener(
-            PacketListener.asAbstract(PacketListenerPriority.HIGHEST)
-        )
+        packetEvents.eventManager.registerListener(PacketListener)
 
         initPlatform()
 
